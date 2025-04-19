@@ -26,7 +26,7 @@ function Register() {
         email,
         password,
       });
-      // const res = await axios.post("http://localhost:8800/api/auth/register", {
+      // const res = await axios.post("https://estate-deployed-s448.onrender.com/auth/register", {
       //   username,
       //   email,
       //   password,

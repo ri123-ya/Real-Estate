@@ -34,23 +34,34 @@ export const SocketContextProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
 
     useEffect(() => {
-        const newSocket = io("http://localhost:4000");
+        // Skip the socket connection if no currentUser exists
+        if (!currentUser) return;
 
-        newSocket.on("connect", () => {
-            console.log("✅ Connected to socket server:", newSocket.id);
-            setSocket(newSocket);
+        // Create socket only if it doesn't exist
+        if (!socket) {
+            const newSocket = io("https://estate-deployed-s448.onrender.com", {
+                transports: ["websocket"], // Prefer WebSocket for stable connection
+            });
 
-            // Emit "newUser" only when socket is fully ready
-            if (currentUser) {
+            newSocket.on("connect", () => {
+                console.log("✅ Connected to socket server:", newSocket.id);
+                setSocket(newSocket);
+
+                // Emit "newUser" only when socket is fully ready
                 newSocket.emit("newUser", currentUser.id);
                 console.log("📢 Emitted newUser:", currentUser.id);
-            }
-        });
+            });
 
-        return () => {
-            newSocket.disconnect();
-        };
-    }, [currentUser]);
+            // Cleanup: Disconnect socket when component unmounts or user changes
+            return () => {
+                newSocket.disconnect();
+            };
+        } else {
+            // If socket exists, just emit "newUser"
+            socket.emit("newUser", currentUser.id);
+            console.log("📢 Re-emitted newUser:", currentUser.id);
+        }
+    }, [currentUser]); // Re-run only when currentUser changes
 
     return (
         <SocketContext.Provider value={{ socket }}>
